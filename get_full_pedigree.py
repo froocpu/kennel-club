@@ -1,18 +1,19 @@
+import argparse
 import json
 
 from bs4 import BeautifulSoup
 
-from dogs import DoggoFamily
+from config import DEFAULT_STARTING_DOG
+from data import prepare_nodes_and_links
+from dogs import DoggoUnit
 from scrape import BASE_URL, get_html_doc
 
-ELTON = "/search/dog-profile/?dogId=10673831-d354-eb11-a812-000d3a874bc8"
 
-
-def get_dogs(link):
+def get_dogs(link: str):
     html_doc = get_html_doc(link)
     print(link)
     soup = BeautifulSoup(html_doc)
-    doggy_tree = DoggoFamily(soup)
+    doggy_tree = DoggoUnit(soup)
     print(f"Dis dogge: {doggy_tree.top_dog.name}")
     if doggy_tree.top_dog.name in doggy_dict.keys():
         return
@@ -27,20 +28,38 @@ def get_dogs(link):
 
 if __name__ == "__main__":
 
-    doggy_dict = {}
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--start", help="starting dogId", default=DEFAULT_STARTING_DOG, required=False)
+    parser.add_argument("--noscrape",
+                        help="When flagged, it will not scrape data from kennel club, and instead work with local data.",
+                        action="store_true")
+    args = parser.parse_args()
 
-    for dog in get_dogs(f"{BASE_URL}{ELTON}"):
-        doggy_dict.update({
-            dog.name: dog
-        })
+    if args.noscrape:
+        with open('doggy_dict.json', 'r') as dd:
+            data = json.loads(''.join(dd.readlines()))
+            print(len(data))
+    else:
+        doggy_dict = {}
 
-    print(doggy_dict)
-    for i, j in doggy_dict.items():
-        print(f"dog: {i}, sired by: {j.sire}, damed by: {j.dam}")
+        if args.start:
+            start_id = f"/search/dog-profile/?dogId={args.start}"
+        else:
+            start_id = DEFAULT_STARTING_DOG
 
-    output = [dog.dict() for dog in doggy_dict.values()]
-    output_str = json.dumps(output)
+        for dog in get_dogs(f"{BASE_URL}{start_id}"):
+            doggy_dict.update({
+                dog.name: dog
+            })
 
-    with open("dogs.json", "w") as dogs_file:
+        print(len(doggy_dict))
+        data = [dog.dict() for dog in doggy_dict.values()]
+        with open('doggy_dict.json', 'w') as dd:
+            dd.write(json.dumps(data))
+
+    nodes_and_links = prepare_nodes_and_links(data)
+    output_str = json.dumps(nodes_and_links)
+
+    with open("d3/dogs.json", "w") as dogs_file:
         dogs_file.write(output_str)
 
