@@ -3,21 +3,17 @@ async function networkChart() {
     const data = await d3.json("./dogs.json")
     // console.log(data)
 
-    const height = 1000
-    const width = 1000
+    const height = 750
+    const width = 1500
 
     const links = data.links.map(d => Object.create(d));
     const nodes = data.nodes.map(d => Object.create(d));
   
-    const simulation = d3.forceSimulation(nodes)
-        .force("link", d3.forceLink(links)
-            .id(d => d.id)
-            .distance(10))
-        .force("charge", d3.forceManyBody().strength(-20))
-        //.force('collision', d3.forceCollide().radius(0.1))
-        .force("x", d3.forceX())
-        .force("y", d3.forceY())
-        .force("center", d3.forceCenter());
+  const simulation = d3.forceSimulation(nodes)
+      .force("link", d3.forceLink(links).id(d => d.id).distance(0).strength(1))
+      .force("charge", d3.forceManyBody().strength(-50))
+      .force("x", d3.forceX())
+      .force("y", d3.forceY());
   
     const svg = d3.select("#svg")
         .append("svg")

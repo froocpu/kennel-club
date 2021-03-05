@@ -49,7 +49,7 @@ class DoggoUnit:
             name=names[0],
             link=links[0],
             sire=links[1],
-            dam=links[2],
+            dam=links[4],
             colour=profile.get('colour'),
             sex=profile.get('sex'),
             dob=profile.get('dob')
