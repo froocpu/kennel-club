@@ -24,14 +24,14 @@ pipenv install --dev
 
 ### Run
 
-With scraper:
+With scraping:
 
 ```shell script
 # Defaults to my dog
 pipenv run python get_full_pedigree.py 
 ```
 
-Without scraping (loads data locally:)
+Without scraping (loads data locally)
 
 ```shell script
 pipenv run python get_full_pedigree.py --noscrape
@@ -55,15 +55,24 @@ python -m http.server 8088
 python -m SimpleHTTPServer 8088
 ```
 
-Then navigate to your [localhost:8088](http://localhost:8088).
+Then navigate to your `index.html` at [localhost:8088/index.html](http://localhost:8088/index.html).
 
 ## Contributing
+
+### How to contribute
+
+If you do stumble across this and like this:
+
+1. Create a feature branch/fork the project.
+2. Submit a merge request/PR with changes.
+3. Write some tests if possible and make sure everything builds/passes properly.
 
 ### TODO
 
 - [x] Crawls through ancestry to find more dogs until it hits a wall (a dog with no available profile.)
 - [x] Scrape more information from each dog profile.
-- [x] Get more data for litters produced and convert it into nodes and links. 
+- [ ] Get more data for litters produced and convert it into nodes and links. 
 - [x] First visualisation in D3. 
 - [ ] Convert JSON files to CSV for to save space.
-- [ ] Polish D3.js visualiation
+- [ ] Polish D3.js visualisation
+- [ ] Automate build and tests.
