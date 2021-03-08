@@ -1,14 +1,14 @@
-import argparse
 import json
 import logging
 import os
 
 from bs4 import BeautifulSoup
 
-from config import DEFAULT_STARTING_DOG
-from data import prepare_d3_stratify_data, write_d3_stratify_data
-from dogs import DoggoUnit
-from scrape import BASE_URL, get_html_doc
+from full_pedigree.config import *
+from full_pedigree.data import prepare_d3_stratify_data, write_d3_stratify_data
+from full_pedigree.dogs import DoggoUnit
+from full_pedigree.scrape import BASE_URL, get_html_doc
+from full_pedigree.utils import parse_arguments_get_full_pedigree, get_url
 
 logging.basicConfig(
     level=os.environ.get("LOGGING_LEVEL", "INFO"),
@@ -37,37 +37,30 @@ def get_dogs(link: str, generation: int = 0):
         yield from get_dogs(f"{BASE_URL}{doggy_tree.sire.link}", generation=generation+1)
 
 
+def get_full_pedigree():
+    url = get_url(args)
+    for dog in get_dogs(url):
+        doggy_dict.update({
+            dog.name: dog.dict()
+        })
+    with open(DOG_DICT_LOCATION, "w") as dd:
+        output_text = json.dumps(doggy_dict)
+        dd.write(output_text)
+    return doggy_dict
+
+
 if __name__ == "__main__":
+    doggy_dict = {}
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--start", help="starting dogId", default=DEFAULT_STARTING_DOG, required=False)
-    parser.add_argument("--noscrape",
-                        help="When flagged, it will not scrape data from kennel club, and instead work with local data.",
-                        action="store_true")
-    args = parser.parse_args()
-
+    args = parse_arguments_get_full_pedigree()
     if args.noscrape:
-        with open('doggy_dict.json', 'r') as dd:
+        with open(DOG_DICT_LOCATION, 'r') as dd:
             data = json.loads(''.join(dd.readlines()))
             logger.info(f"Number of rows read from pre-generated data file: {len(data)}")
     else:
-        doggy_dict = {}
-
-        if args.start:
-            start_id = f"/search/dog-profile/?dogId={args.start}"
-        else:
-            start_id = DEFAULT_STARTING_DOG
-
-        for dog in get_dogs(f"{BASE_URL}{start_id}"):
-            doggy_dict.update({
-                dog.name: dog
-            })
-
-        data = [dog.dict() for dog in doggy_dict.values()]
-        with open('doggy_dict.json', 'w') as dd:
-            dd.write(json.dumps(data))
-            logger.info(f"Number of rows written to new data file: {len(data)}")
+        get_full_pedigree()
 
     d3_data = prepare_d3_stratify_data(data)
     write_d3_stratify_data(d3_data)
+    logger.info(f"Number of rows written to new data file: {len(d3_data)}")
 

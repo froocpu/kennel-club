@@ -1,4 +1,4 @@
-from scrape import SELECTOR
+from full_pedigree.scrape import SELECTOR
 
 
 class Doggo:
