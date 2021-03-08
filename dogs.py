@@ -2,7 +2,7 @@ from scrape import SELECTOR
 
 
 class Doggo:
-    def __init__(self, name, sex=None, colour=None, dob=None, link=None, sire=None, dam=None):
+    def __init__(self, name, sex=None, colour=None, dob=None, link=None, sire=None, dam=None, generation=0):
         self.name = name
         self.sex = sex
         self.colour = colour
@@ -10,6 +10,7 @@ class Doggo:
         self.link = link
         self.sire = sire
         self.dam = dam
+        self.generation = generation
 
     def __str__(self):
         return f'{"name":"{self.name}", "link":"{self.link}", "sire":"{self.sire}", "dam":"{self.dam}"}'
@@ -21,7 +22,8 @@ class Doggo:
                 "dam": self.dam,
                 "colour": self.colour,
                 "sex": self.sex,
-                "dob": self.dob}
+                "dob": self.dob,
+                "generation": self.generation}
 
 
 class DoggoUnit:
@@ -35,7 +37,7 @@ class DoggoUnit:
     5. Mum's dad
     6. Mum's mum
     """
-    def __init__(self, soup):
+    def __init__(self, soup, generation):
         profile = get_dog_profile(soup)
         results = soup.findAll("div", {"class": SELECTOR})
         links = []
@@ -48,11 +50,12 @@ class DoggoUnit:
         self.top_dog = Doggo(
             name=names[0],
             link=links[0],
-            sire=links[1],
-            dam=links[4],
+            sire=names[1],
+            dam=names[4],
             colour=profile.get('colour'),
             sex=profile.get('sex'),
-            dob=profile.get('dob')
+            dob=profile.get('dob'),
+            generation=generation
         )
 
         self.sire = Doggo(

@@ -63,5 +63,7 @@ Then navigate to your [localhost:8088](http://localhost:8088).
 
 - [x] Crawls through ancestry to find more dogs until it hits a wall (a dog with no available profile.)
 - [x] Scrape more information from each dog profile.
-- [ ] Get more data for litters produced and convert it into nodes and links.
+- [x] Get more data for litters produced and convert it into nodes and links. 
+- [x] First visualisation in D3. 
+- [ ] Convert JSON files to CSV for to save space.
 - [ ] Polish D3.js visualiation

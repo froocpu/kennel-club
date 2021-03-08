@@ -1,29 +1,40 @@
 import argparse
 import json
+import logging
+import os
 
 from bs4 import BeautifulSoup
 
 from config import DEFAULT_STARTING_DOG
-from data import prepare_nodes_and_links
+from data import prepare_d3_stratify_data, write_d3_stratify_data
 from dogs import DoggoUnit
 from scrape import BASE_URL, get_html_doc
 
+logging.basicConfig(
+    level=os.environ.get("LOGGING_LEVEL", "INFO"),
+    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s"
+)
+logger = logging.getLogger(__name__)
 
-def get_dogs(link: str):
+
+def get_dogs(link: str, generation: int = 0):
+    logger.info(link)
     html_doc = get_html_doc(link)
-    print(link)
     soup = BeautifulSoup(html_doc)
-    doggy_tree = DoggoUnit(soup)
-    print(f"Dis dogge: {doggy_tree.top_dog.name}")
+    doggy_tree = DoggoUnit(soup, generation)
+
+    logger.info(f"Dog scraped: '{doggy_tree.top_dog.name}'")
     if doggy_tree.top_dog.name in doggy_dict.keys():
         return
     yield doggy_tree.top_dog
+
+    logger.info(f"Generation: {generation}")
     if doggy_tree.dam.link:
-        print(f"Checking {doggy_tree.top_dog.name}'s dam's line....")
-        yield from get_dogs(f"{BASE_URL}{doggy_tree.dam.link}")
+        logger.debug(f"Checking {doggy_tree.top_dog.name}'s dam's line....")
+        yield from get_dogs(f"{BASE_URL}{doggy_tree.dam.link}", generation=generation+1)
     if doggy_tree.sire.link:
-        print(f"Checking {doggy_tree.top_dog.name}'s sire's line....")
-        yield from get_dogs(f"{BASE_URL}{doggy_tree.sire.link}")
+        logger.debug(f"Checking {doggy_tree.top_dog.name}'s sire's line....")
+        yield from get_dogs(f"{BASE_URL}{doggy_tree.sire.link}", generation=generation+1)
 
 
 if __name__ == "__main__":
@@ -38,7 +49,7 @@ if __name__ == "__main__":
     if args.noscrape:
         with open('doggy_dict.json', 'r') as dd:
             data = json.loads(''.join(dd.readlines()))
-            print(len(data))
+            logger.info(f"Number of rows read from pre-generated data file: {len(data)}")
     else:
         doggy_dict = {}
 
@@ -52,14 +63,11 @@ if __name__ == "__main__":
                 dog.name: dog
             })
 
-        print(len(doggy_dict))
         data = [dog.dict() for dog in doggy_dict.values()]
         with open('doggy_dict.json', 'w') as dd:
             dd.write(json.dumps(data))
+            logger.info(f"Number of rows written to new data file: {len(data)}")
 
-    nodes_and_links = prepare_nodes_and_links(data)
-    output_str = json.dumps(nodes_and_links)
-
-    with open("d3/dogs.json", "w") as dogs_file:
-        dogs_file.write(output_str)
+    d3_data = prepare_d3_stratify_data(data)
+    write_d3_stratify_data(d3_data)
 
